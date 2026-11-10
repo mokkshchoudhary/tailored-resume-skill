@@ -64,7 +64,7 @@ Write `resume.json` in the shape of `references/resume.schema.json`. The summary
 python <this skill's folder>/scripts/build_resume.py resume.json --profile profile.md --out resume-output
 ```
 
-It lists every problem: a quote not found in the profile, a number not in its evidence, a skill or employer not in the profile, a banned phrase, a `TBD` left in, more than two pages. Fix the content, never the checker, and run it again until it passes. It writes `resume-output/resume.tex`, and `resume-output/resume.pdf` when tectonic, pdflatex, xelatex or lualatex is installed.
+It lists every problem: a quote not found in the profile, a number not in its evidence, a skill or employer not in the profile, a banned phrase, a `TBD` left in, more than two pages. Fix the content, never the checker, and run it again until it passes. It writes `resume-output/resume.tex`, and `resume-output/resume.pdf` when tectonic, pdflatex, xelatex or lualatex is installed. The script finds Tectonic by itself and, when no LaTeX engine exists, downloads Tectonic once (about 30 MB, needs internet) to `~/.tailored-resume/bin`; pass `--no-install-engine` to stop that.
 
 It also warns when a one-page resume leaves much of the page empty. Then use more of the profile's relevant facts: another bullet on a strong role, or another project. If the profile has nothing more that is relevant, leave the space. Never pad.
 

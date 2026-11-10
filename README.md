@@ -8,7 +8,7 @@ Give an AI agent one fact-only profile and a job description. It makes a tailore
 - A resume of one to two pages
 - An evidence check on every bullet and number
 - A check for banned phrases
-- A PDF when a LaTeX engine is present
+- A PDF built automatically where the agent can run Python and reach the internet
 - Otherwise, `resume.tex` for Overleaf
 
 ## Quick start
@@ -158,9 +158,13 @@ From the repository root, run:
 python tailored-resume/scripts/build_resume.py resume.json --profile profile.md --out resume-output
 ```
 
-The script accepts `resume_json`, `--profile`, `--out`, and `--no-pdf`. It uses Python 3 standard library only. A PDF needs a LaTeX engine: Tectonic, pdflatex, xelatex, or lualatex. The script uses the first one it finds.
+The script accepts `resume_json`, `--profile`, `--out`, `--no-pdf`, and `--no-install-engine`. It uses Python 3 standard library only. A PDF needs a LaTeX engine: Tectonic, pdflatex, xelatex, or lualatex. The script uses the first one it finds.
 
-## Getting a PDF: install Tectonic
+## Getting a PDF
+
+You normally do nothing; the script looks for Tectonic on PATH and in the common install folders, and if there is no LaTeX engine it downloads Tectonic 0.17.0 once from the official GitHub release, checks its SHA-256, and keeps it in `~/.tailored-resume/bin`; `--no-install-engine` turns this off.
+
+To install it yourself instead:
 
 Tectonic is a free LaTeX engine that comes as a single program. Install it once and the skill makes the PDF for you. These commands come from the [Tectonic installation guide](https://tectonic-typesetting.github.io/book/latest/installation/).
 
@@ -201,7 +205,7 @@ No LaTeX engine? Use Overleaf: open overleaf.com, choose New Project, choose Upl
 ## Troubleshooting
 
 - Skill not found: check that the folder is named `tailored-resume`, check its location, and check the tool's documentation.
-- No PDF: no LaTeX engine is available. [Install Tectonic](#getting-a-pdf-install-tectonic), or use Overleaf with `resume.tex`.
+- No PDF: the automatic download needs internet and write access to your home folder; chat apps without those give `resume.tex` for Overleaf.
 - Checker rejects a line: fix the content or add the fact to the profile. Never edit the checker.
 
 ## Tests

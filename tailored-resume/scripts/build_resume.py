@@ -1,14 +1,20 @@
 """Build and validate a fact-checked resume using the locked LaTeX template."""
 
 import argparse
+import hashlib
+import io
 import json
 import os
+import platform
 import re
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import unicodedata
+import urllib.request
+import zipfile
 import zlib
 from pathlib import Path
 
@@ -16,6 +22,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE = ROOT / "assets" / "resume-template.tex"
 MARKER = "%__TAILORED_RESUME_CONTENT__%"
+ENGINE_DIR = Path.home() / ".tailored-resume" / "bin"
+TECTONIC_VERSION = "0.17.0"
+TECTONIC_BASE_URL = "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.17.0/"
+TECTONIC_ASSETS = {
+    ("windows", "x86_64"): ("tectonic-0.17.0-x86_64-pc-windows-msvc.zip", "f61ce51f0b0ade1015b7de7ef368541c5424e9756ecbd0d7af97d6d48030845f"),
+    ("darwin", "aarch64"): ("tectonic-0.17.0-aarch64-apple-darwin.tar.gz", "a3f1cac7c5678f01661a92212f58480ae3b0634115d880dbc59e2953ded45667"),
+    ("darwin", "x86_64"): ("tectonic-0.17.0-x86_64-apple-darwin.tar.gz", "7c90ef5b6ddb1eb1937e4337add5237b79338e4b9676459fa91187d24d6cdf80"),
+    ("linux", "x86_64"): ("tectonic-0.17.0-x86_64-unknown-linux-musl.tar.gz", "8533d07f9ccbd7a65824b9e0459041bca34af1eb33daba48f59215593753a3b7"),
+    ("linux", "aarch64"): ("tectonic-0.17.0-aarch64-unknown-linux-musl.tar.gz", "b10954a95404f3ab2328d2fa59a5ebab8e657f893fab096f98be8db7c0c979b8"),
+}
 MONTH_NAMES = {
     "january": "Jan", "jan": "Jan", "february": "Feb", "feb": "Feb",
     "march": "Mar", "mar": "Mar", "april": "Apr", "apr": "Apr",
@@ -343,12 +359,88 @@ def page_count(pdf_path):
     return int(matches[-1]) if matches else None
 
 
+def engine_search_dirs():
+    return [ENGINE_DIR, Path.home() / ".local" / "bin", Path.home() / ".cargo" / "bin", Path.home() / "scoop" / "shims", Path("/opt/homebrew/bin"), Path("/usr/local/bin"), Path("/opt/local/bin")]
+
+
 def engine_path():
-    candidates=[os.environ.get("TECTONIC_BIN"),"tectonic","pdflatex","xelatex","lualatex"]
-    for c in candidates:
-        if c and (Path(c).is_file() if Path(c).is_absolute() else shutil.which(c)):
-            return c
+    configured = os.environ.get("TECTONIC_BIN")
+    if configured and (Path(configured).is_file() if Path(configured).is_absolute() else shutil.which(configured)):
+        return configured
+    if shutil.which("tectonic"):
+        return "tectonic"
+    tectonic_name = "tectonic.exe" if platform.system().lower() == "windows" else "tectonic"
+    for folder in engine_search_dirs():
+        candidate = Path(folder) / tectonic_name
+        if candidate.is_file():
+            return str(candidate.absolute())
+    for name in ("pdflatex", "xelatex", "lualatex"):
+        if shutil.which(name):
+            return name
     return None
+
+
+def install_tectonic():
+    system = platform.system().lower()
+    machine = platform.machine().lower()
+    machine = {"amd64": "x86_64", "arm64": "aarch64"}.get(machine, machine)
+    asset = TECTONIC_ASSETS.get((system, machine))
+    if not asset:
+        return None
+    name, expected_hash = asset
+    try:
+        print(f"No LaTeX engine found. Downloading Tectonic {TECTONIC_VERSION} (one time, about 30 MB) to {ENGINE_DIR} ...", file=sys.stderr)
+        # Large download: connections get cut mid-way on real networks, so resume with Range requests.
+        archive = b""; total = None; last_error = None
+        for _ in range(8):
+            request = urllib.request.Request(TECTONIC_BASE_URL + name, headers={"Range": f"bytes={len(archive)}-"} if archive else {})
+            try:
+                with urllib.request.urlopen(request, timeout=60) as response:
+                    if getattr(response, "status", 200) != 206: archive = b""  # server ignored Range: start over
+                    headers = getattr(response, "headers", None)
+                    length = headers.get("Content-Length") if headers else None
+                    if length is not None: total = len(archive) + int(length)
+                    while True:
+                        chunk = response.read(65536)
+                        if not chunk: break
+                        archive += chunk
+            except Exception as exc:
+                last_error = exc
+                continue
+            if total is None or len(archive) >= total: break
+        else:
+            raise last_error or OSError("download incomplete")
+        if hashlib.sha256(archive).hexdigest() != expected_hash:
+            raise ValueError("download SHA-256 mismatch")
+        member_bytes = None
+        target_name = "tectonic.exe" if system == "windows" else "tectonic"
+        if name.endswith(".zip"):
+            with zipfile.ZipFile(io.BytesIO(archive)) as package:
+                for member in package.infolist():
+                    if Path(member.filename).name == target_name:
+                        member_bytes = package.read(member)
+                        break
+        else:
+            with tarfile.open(fileobj=io.BytesIO(archive), mode="r:gz") as package:
+                for member in package.getmembers():
+                    if Path(member.name).name == target_name and member.isfile():
+                        extracted = package.extractfile(member)
+                        member_bytes = extracted.read() if extracted else None
+                        break
+        if member_bytes is None:
+            raise ValueError(f"archive does not contain {target_name}")
+        ENGINE_DIR.mkdir(parents=True, exist_ok=True)
+        final_path = ENGINE_DIR / target_name
+        with tempfile.NamedTemporaryFile(dir=ENGINE_DIR, delete=False) as temp:
+            temp.write(member_bytes)
+            temp_path = Path(temp.name)
+        if system != "windows":
+            temp_path.chmod(0o755)
+        os.replace(temp_path, final_path)
+        return str(final_path.absolute())
+    except Exception as exc:
+        print(f"Could not install Tectonic automatically: {exc}", file=sys.stderr)
+        return None
 
 
 def parse_fill(text):
@@ -358,8 +450,10 @@ def parse_fill(text):
     return amount / goal if goal else None
 
 
-def compile_pdf(tex_path, out_dir):
+def compile_pdf(tex_path, out_dir, allow_install=True):
     engine=engine_path()
+    if not engine and allow_install:
+        engine = install_tectonic()
     if not engine: return None,None,None
     with tempfile.TemporaryDirectory() as tmp:
         work=Path(tmp); local_tex=work/"resume.tex"
@@ -370,7 +464,7 @@ def compile_pdf(tex_path, out_dir):
         try:
             if Path(engine).name.lower().startswith("tectonic"):
                 cmd=[engine,"--keep-logs","--outdir",str(work),str(local_tex)]
-                result = subprocess.run(cmd,cwd=work,text=True,capture_output=True,timeout=180,check=True)
+                result = subprocess.run(cmd,cwd=work,text=True,capture_output=True,timeout=600,check=True)
                 output.extend((result.stdout, result.stderr))
             else:
                 cmd=[engine,"-interaction=nonstopmode","-halt-on-error","resume.tex"]
@@ -389,7 +483,7 @@ def compile_pdf(tex_path, out_dir):
 
 
 def main(argv=None):
-    parser=argparse.ArgumentParser(); parser.add_argument("resume_json"); parser.add_argument("--profile",required=True); parser.add_argument("--out",required=True); parser.add_argument("--no-pdf",action="store_true"); args=parser.parse_args(argv)
+    parser=argparse.ArgumentParser(); parser.add_argument("resume_json"); parser.add_argument("--profile",required=True); parser.add_argument("--out",required=True); parser.add_argument("--no-pdf",action="store_true"); parser.add_argument("--no-install-engine",action="store_true"); args=parser.parse_args(argv)
     try: data=json.loads(Path(args.resume_json).read_text(encoding="utf-8")); profile=Path(args.profile).read_text(encoding="utf-8")
     except Exception as exc: print(str(exc),file=sys.stderr); return 1
     problems=shape_errors(data) if isinstance(data,dict) else ["$: must be an object"]
@@ -406,12 +500,13 @@ def main(argv=None):
     except Exception as exc: print(str(exc),file=sys.stderr); return 1
     pdf=None; pages=None; fill=None; engine=engine_path()
     if not args.no_pdf:
-        try: pdf,pages,fill=compile_pdf(tex,out)
+        try: pdf,pages,fill=compile_pdf(tex,out,allow_install=not args.no_install_engine and os.environ.get("TAILORED_RESUME_NO_INSTALL") != "1")
         except RuntimeError as exc: print(str(exc),file=sys.stderr); return 1
         if pages is not None and pages>2: print(f"resume is {pages} pages; the limit is 2",file=sys.stderr); return 1
         if pages == 1 and fill is not None and fill < 0.85:
             print(f"warning: the page is only {round(fill * 100)}% full. If the profile has more relevant facts, use them; never pad.", file=sys.stderr)
-        if engine is None: print(f"No LaTeX engine found. Upload {tex} to Overleaf (New Project > Upload Project) to get the PDF.")
+        engine = engine_path()
+        if engine is None: print("No PDF: no LaTeX engine available. Upload resume.tex to overleaf.com (New Project > Upload Project) to get the PDF.", file=sys.stderr)
     print(json.dumps({"ok":True,"tex":str(tex),"pdf":str(pdf) if pdf else None,"pages":pages,"fill":round(fill, 2) if fill is not None else None,"engine":Path(engine).name if engine else None}))
     return 0
 

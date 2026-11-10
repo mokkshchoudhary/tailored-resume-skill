@@ -1,11 +1,15 @@
 import ast
+import hashlib
+import io
 import json
 import os
 import shutil
 import subprocess
 import sys
+import tarfile
 import tempfile
 import unittest
+import zipfile
 from contextlib import redirect_stderr
 from io import StringIO
 from unittest.mock import patch
@@ -29,6 +33,7 @@ def run_build(data, profile=None, pdf=False):
         data_path = Path(td) / "resume.json"
         data_path.write_text(json.dumps(data), encoding="utf-8")
         env = os.environ.copy()
+        env["TAILORED_RESUME_NO_INSTALL"] = "1"
         engine = next((x for x in [env.get("TECTONIC_BIN"), shutil.which("tectonic"), str(Path(env.get("LOCALAPPDATA", "")) / "Tailor" / "bin" / "tectonic.exe")] if x and Path(x).exists()), None)
         if engine: env["TECTONIC_BIN"] = engine
         result = subprocess.run([py(), str(SCRIPT), str(data_path), "--profile", str(profile or EXAMPLE / "profile.md"), "--out", str(Path(td) / "out")] + (["--no-pdf"] if not pdf else []), capture_output=True, text=True, env=env)
@@ -217,6 +222,56 @@ class ResumeBuildTests(unittest.TestCase):
     def test_profile_template_is_placeholder_only(self):
         text = (SKILL / "assets" / "profile-template.md").read_text(encoding="utf-8")
         self.assertNotRegex(text, r"@|example\.com|Jordan")
+
+    def test_engine_path_finds_tectonic_in_extra_folder(self):
+        with tempfile.TemporaryDirectory() as td:
+            folder = Path(td); binary = folder / "tectonic"; binary.write_bytes(b"fake")
+            with patch.dict(os.environ, {"TECTONIC_BIN": ""}, clear=False), patch.object(build_resume.shutil, "which", return_value=None), patch.object(build_resume.platform, "system", return_value="Linux"), patch.object(build_resume, "engine_search_dirs", return_value=[folder]):
+                self.assertEqual(build_resume.engine_path(), str(binary.absolute()))
+
+    def _archive(self, windows):
+        stream = io.BytesIO()
+        name = "tectonic.exe" if windows else "tectonic"
+        if windows:
+            with zipfile.ZipFile(stream, "w") as package: package.writestr(f"nested/{name}", b"fake tectonic")
+        else:
+            with tarfile.open(fileobj=stream, mode="w:gz") as package:
+                info = tarfile.TarInfo(f"nested/{name}"); info.size = len(b"fake tectonic"); package.addfile(info, io.BytesIO(b"fake tectonic"))
+        stream.seek(0); return stream.read()
+
+    def test_install_tectonic_extracts_verified_archive(self):
+        for system, windows in (("Windows", True), ("Linux", False)):
+            with self.subTest(system=system), tempfile.TemporaryDirectory() as td:
+                archive = self._archive(windows)
+                response = io.BytesIO(archive)
+                target = Path(td) / ("tectonic.exe" if windows else "tectonic")
+                digest = hashlib.sha256(archive).hexdigest()
+                asset_key = (system.lower(), "x86_64")
+                asset_name = build_resume.TECTONIC_ASSETS[asset_key][0]
+                with patch.object(build_resume, "ENGINE_DIR", Path(td)), patch.object(build_resume.platform, "system", return_value=system), patch.object(build_resume.platform, "machine", return_value="AMD64" if windows else "x86_64"), patch.object(build_resume.urllib.request, "urlopen", return_value=response), patch.dict(build_resume.TECTONIC_ASSETS, {asset_key: (asset_name, digest)}):
+                    self.assertEqual(build_resume.install_tectonic(), str(target.absolute()))
+                self.assertEqual(target.read_bytes(), b"fake tectonic")
+
+    def test_install_tectonic_rejects_hash_mismatch(self):
+        archive = self._archive(False)
+        with tempfile.TemporaryDirectory() as td, patch.object(build_resume, "ENGINE_DIR", Path(td)), patch.object(build_resume.platform, "system", return_value="Linux"), patch.object(build_resume.platform, "machine", return_value="x86_64"), patch.object(build_resume.urllib.request, "urlopen", return_value=io.BytesIO(archive)), patch.object(build_resume.hashlib, "sha256", return_value=type("Hash", (), {"hexdigest": lambda self: "bad"})()):
+            self.assertIsNone(build_resume.install_tectonic())
+            self.assertFalse((Path(td) / "tectonic").exists())
+
+    def test_install_tectonic_network_error_is_safe(self):
+        with tempfile.TemporaryDirectory() as td, patch.object(build_resume, "ENGINE_DIR", Path(td)), patch.object(build_resume.platform, "system", return_value="Linux"), patch.object(build_resume.platform, "machine", return_value="x86_64"), patch.object(build_resume.urllib.request, "urlopen", side_effect=OSError("offline")):
+            self.assertIsNone(build_resume.install_tectonic())
+
+    def test_install_tectonic_skips_unsupported_platform(self):
+        with tempfile.TemporaryDirectory() as td, patch.object(build_resume, "ENGINE_DIR", Path(td)), patch.object(build_resume.platform, "system", return_value="Plan9"), patch.object(build_resume.urllib.request, "urlopen") as urlopen:
+            self.assertIsNone(build_resume.install_tectonic())
+            urlopen.assert_not_called()
+
+    def test_no_install_engine_does_not_attempt_install(self):
+        with tempfile.TemporaryDirectory() as td, patch.object(build_resume, "engine_path", return_value=None), patch.object(build_resume, "install_tectonic") as install:
+            result = build_resume.main([str(EXAMPLE / "resume.json"), "--profile", str(EXAMPLE / "profile.md"), "--out", str(Path(td) / "out"), "--no-install-engine"])
+            self.assertEqual(result, 0)
+            install.assert_not_called()
 
 
 if __name__ == "__main__": unittest.main()
