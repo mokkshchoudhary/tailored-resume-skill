@@ -18,131 +18,148 @@ Give an AI agent one fact-only profile and a job description. It makes a tailore
 3. Say “make my resume” and give the agent an old resume or profile plus the job description.
 4. Keep the `profile.md` it gives you for next time.
 
-## Works with
-
-| Agent | How it is installed | Status |
-| --- | --- | --- |
-| Claude Code | Copy the folder to `~/.claude/skills/` or `<project>/.claude/skills/` | Not yet tested by the author |
-| Claude (claude.ai and desktop) | Zip the folder and upload it under Settings > Capabilities > Skills | Not yet tested by the author |
-| Codex CLI | Copy the folder to `~/.codex/skills/` or `<project>/.agents/skills/` | Not yet tested by the author |
-| ChatGPT | Upload the zip under Skills | Not yet tested by the author |
-| Gemini app | Settings > Skills > Upload | Not yet tested by the author |
-| Gemini CLI | Copy it to `<project>/.agents/skills/` | Not yet tested by the author |
-| Antigravity | Copy it to `<project>/.agents/skills/` or `~/.gemini/antigravity/skills/` | Tested by the author |
-| Any other chat | Attach `SKILL.md`, `references/`, `assets/` and `examples/` | Not yet tested by the author |
-
-Open an issue to report what works for you.
-
 ## Install and use, by agent
 
-The folder name must stay `tailored-resume`.
+The skill is the `tailored-resume` folder in this repository. Every agent below reads the same folder; only the place you put it differs. Two rules apply everywhere:
 
-### Making the zip
+- The folder name must stay `tailored-resume`.
+- `SKILL.md` must sit directly inside that folder.
 
-PowerShell:
+Menus and folder locations change between versions. Each section links to the agent's own documentation; check it if a step does not match what you see.
 
-```powershell
-Compress-Archive -Path tailored-resume -DestinationPath tailored-resume.zip
+### Two ways to install
+
+**Copy the folder** (agents that run on your computer). Replace `DEST` with the folder named in your agent's section.
+
+macOS and Linux:
+
+```bash
+mkdir -p DEST
+cp -r tailored-resume DEST/
 ```
 
-bash:
+Windows PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force DEST
+Copy-Item -Recurse tailored-resume DEST
+```
+
+**Upload a zip** (chat apps). Make the zip from the repository root, so the zip contains the `tailored-resume` folder itself.
+
+macOS and Linux:
 
 ```bash
 zip -r tailored-resume.zip tailored-resume
 ```
 
+Windows PowerShell:
+
+```powershell
+Compress-Archive -Path tailored-resume -DestinationPath tailored-resume.zip
+```
+
+### What to say
+
+In every agent, the same request works:
+
+```text
+Make my resume for this job. Here is my old resume and the job description.
+```
+
+Attach or paste your old resume (or your `profile.md` if you already have one) and the job description. The first time, the agent builds your `profile.md`, shows it to you, and asks about anything missing. Keep that file. Next time you give it `profile.md` and the new job description, and it goes straight to the resume.
+
 ### Claude Code
 
-1. Copy `tailored-resume/` to `~/.claude/skills/` for all projects or `<project>/.claude/skills/`.
-2. Say:
+1. Copy the folder to `~/.claude/skills/` to use it in every project, or to `.claude/skills/` inside one project.
+2. Start a new Claude Code session.
+3. Ask for a resume in plain words, or type `/tailored-resume` to call the skill by name.
 
-```text
-Make my resume. Use my old resume or profile and this job description.
-```
+Claude Code runs the build script on your computer, so you get the checks and a PDF.
 
-If the agent can run Python it will run the checker and build automatically; if not, it follows the written format guide.
+Documentation: [Claude Code skills](https://code.claude.com/docs/en/skills).
 
-### Claude (claude.ai and desktop)
+### Claude (claude.ai and the desktop app)
 
-1. Use [Making the zip](#making-the-zip) to zip the `tailored-resume` folder.
-2. Upload the zip under Settings > Capabilities > Skills.
-3. Say:
+1. Turn on code execution: open Settings > Capabilities and switch on "Code execution and file creation". On Team and Enterprise plans an owner turns it on in Organization settings.
+2. Make the zip.
+3. Open Customize > Skills, click "+", then "+ Create skill", then "Upload a skill", and choose the zip.
+4. Check that `tailored-resume` is switched on in the skills list.
+5. Start a new chat, attach your resume or profile, paste the job description, and ask for a resume. Claude picks the skill by itself; you can also name it ("use the tailored-resume skill").
 
-```text
-Make my resume. Use my old resume or profile and this job description.
-```
+Custom skills are available on all plans, Free included. Claude runs the checker in its own sandbox. If that sandbox cannot download Tectonic, you get `resume.tex` and the Overleaf steps instead of a PDF.
 
-If the agent can run Python it will run the checker and build automatically; if not, it follows the written format guide.
+Documentation: [Using skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude).
 
-### Codex CLI
+### Codex (CLI and IDE extension)
 
-1. Copy `tailored-resume/` to `~/.codex/skills/` or `<project>/.agents/skills/`.
-2. Say:
+1. Copy the folder to `~/.agents/skills/` to use it everywhere, or to `.agents/skills/` inside one repository.
+2. Codex notices new skills by itself. If it does not appear, restart Codex.
+3. Ask for a resume in plain words, or type `$tailored-resume` to call it by name. `/skills` lists the skills Codex has found.
 
-```text
-Make my resume. Use my old resume or profile and this job description.
-```
+Codex runs the build script on your computer, so you get the checks and a PDF.
 
-If the agent can run Python it will run the checker and build automatically; if not, it follows the written format guide.
+Documentation: [Build skills](https://learn.chatgpt.com/docs/build-skills).
 
 ### ChatGPT
 
-1. Use [Making the zip](#making-the-zip) to zip the `tailored-resume` folder.
-2. Upload the zip under Skills. This is currently available in Business and Enterprise.
-3. Say:
+OpenAI documents skills that you add yourself for the ChatGPT desktop app. It reads the same folders as Codex.
 
-```text
-Make my resume. Use my old resume or profile and this job description.
-```
+1. Copy the folder to `~/.agents/skills/`.
+2. Open the ChatGPT desktop app. The skill is listed under Skills in the sidebar.
+3. In a chat, type `@` and choose `tailored-resume`, or just ask for a resume.
 
-If the agent can run Python it will run the checker and build automatically; if not, it follows the written format guide.
+Some accounts also have an upload button in ChatGPT on the web: profile icon > Skills > New skill > Upload from your computer, then choose the zip. Whether you have it depends on your plan and, at work, on your administrator.
+
+If you have neither, use [Any other chat](#any-other-chat).
+
+Documentation: [Build skills](https://learn.chatgpt.com/docs/build-skills), [Skills and plugins](https://learn.chatgpt.com/docs/skills-and-plugins).
 
 ### Gemini app
 
-1. Use [Making the zip](#making-the-zip) to zip the `tailored-resume` folder.
-2. Open Settings > Skills > Upload.
-3. Say:
+1. Make the zip.
+2. On gemini.google.com or in the Gemini app for Mac, click Customize in the sidebar (under More if you do not see it), then Skills.
+3. Click Create, then Upload, choose the zip, then Upload, then Create.
+4. In a chat, type `/` (or `@`) and choose `tailored-resume`, or just ask for a resume.
 
-```text
-Make my resume. Use my old resume or profile and this job description.
-```
+Upload works on the web and on Mac. The mobile app can use a skill but cannot upload one. For now this needs a personal Google account; work and school accounts do not have it yet.
 
-If the agent can run Python it will run the checker and build automatically; if not, it follows the written format guide.
+Scripts inside a Gemini app skill cannot reach the internet, so Tectonic cannot be downloaded there. Expect `resume.tex` and the Overleaf steps instead of a PDF.
+
+Documentation: [Create and manage skills for Gemini Apps](https://support.google.com/gemini/answer/17094296).
+
+### Antigravity (app, IDE and CLI)
+
+1. Copy the folder to `.agents/skills/` inside your workspace, or to `~/.gemini/config/skills/` to use it in every workspace.
+2. In the CLI, run `/skills reload` or start a new conversation. In the app and IDE, start a new conversation.
+3. Ask for a resume in plain words. In the app and the CLI you can also type `/tailored-resume`.
+
+Antigravity runs the build script on your computer, so you get the checks and a PDF.
+
+Documentation: [Antigravity agent skills](https://antigravity.google/docs/skills).
 
 ### Gemini CLI
 
-1. Copy `tailored-resume/` to `<project>/.agents/skills/`.
-2. Say:
+Google replaced Gemini CLI with the Antigravity CLI in June 2026. If you still use Gemini CLI:
 
-```text
-Make my resume. Use my old resume or profile and this job description.
-```
+1. Copy the folder to `~/.gemini/skills/` to use it everywhere, or to `.gemini/skills/` inside one project. `~/.agents/skills/` and `.agents/skills/` work too.
+2. Run `/skills reload`, then `/skills list` to see that `tailored-resume` is there.
+3. Ask for a resume. Gemini CLI asks you to approve the skill the first time it uses it.
 
-If the agent can run Python it will run the checker and build automatically; if not, it follows the written format guide.
-
-### Antigravity
-
-1. Copy `tailored-resume/` to `<project>/.agents/skills/` or `~/.gemini/antigravity/skills/`.
-2. Say:
-
-```text
-Make my resume. Use my old resume or profile and this job description.
-```
-
-If the agent can run Python it will run the checker and build automatically; if not, it follows the written format guide.
+Documentation: [Gemini CLI agent skills](https://geminicli.com/docs/cli/skills/).
 
 ### Any other chat
 
-1. Attach `SKILL.md`, `references/`, `assets/` and `examples/`.
+Any assistant that accepts file attachments can follow the skill without installing anything.
+
+1. Attach `SKILL.md` and the files in `references/`, `assets/` and `examples/`.
 2. Say:
 
 ```text
-Follow SKILL.md. Make my resume from my profile or old resume and this job description.
+Follow SKILL.md. Make my resume from my old resume and this job description.
 ```
 
-If the agent can run Python it will run the checker; if not, it follows the written format guide.
-
-Install locations change between tool versions. Check the tool's own documentation if the skill is not found.
+Without the build script, the assistant writes `resume.tex` by hand from the written format guide and works through its checklist. Upload `resume.tex` to Overleaf to get the PDF.
 
 ## Your profile
 
@@ -204,7 +221,7 @@ No LaTeX engine? Use Overleaf: open overleaf.com, choose New Project, choose Upl
 
 ## Troubleshooting
 
-- Skill not found: check that the folder is named `tailored-resume`, check its location, and check the tool's documentation.
+- Skill not found: check that the folder is named `tailored-resume`, that `SKILL.md` is directly inside it, and that it is in the folder your agent reads. Then start a new session.
 - No PDF: the automatic download needs internet and write access to your home folder; chat apps without those give `resume.tex` for Overleaf.
 - Checker rejects a line: fix the content or add the fact to the profile. Never edit the checker.
 
