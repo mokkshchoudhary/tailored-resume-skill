@@ -1,0 +1,177 @@
+% Canonical resume template based on Sourabh Bajaj's MIT-licensed resume.
+% The Summary section is intentionally styled like every other resume section.
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{iftex}
+
+\ifPDFTeX
+  \input{glyphtounicode}
+\fi
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Preserve the original template margins.
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1in}
+\addtolength{\topmargin}{-.5in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+\flushbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% All sections, including Summary, use this exact style.
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that pdfLaTeX output is machine-readable and ATS-parsable.
+% XeTeX and LuaTeX emit Unicode mappings without this pdfTeX-only command.
+\ifPDFTeX
+  \pdfgentounicode=1
+\fi
+
+%-------------------------
+% Custom commands
+
+\newcommand{\resumeItem}[2]{
+  \item\small{
+    \textbf{#1}{: #2 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeHeading}[4]{
+  \begin{tabular*}{0.99\textwidth}[t]{l@{\extracolsep{\fill}}r}
+    \textbf{#1} & #2 \\
+    \textit{\small #3} & \textit{\small #4} \\
+  \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}\item
+  \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+    \textbf{#1} & #2 \\
+    \textit{\small #3} & {\small #4} \\
+  \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+  \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+    \textit{\small #1} & \textit{\small #2} \\
+  \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+  \vspace{-1pt}\item
+  \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+    \textbf{#1} & \small #2 \\
+  \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeItemPlain}[1]{
+  \item\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubItem}[2]{\resumeItem{#1}{#2}\vspace{-4pt}}
+
+% Summary body: no bullets, same font scale as the other section content.
+\newcommand{\resumeSummary}[1]{
+  \small{#1}\vspace{1pt}
+}
+
+\renewcommand{\labelitemii}{$\circ$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+%-------------------------------------------
+\begin{document}
+
+% Replaced at export time by scripts/build_resume.py. Keep exactly one marker.
+\begin{tabular*}{\textwidth}{l@{\extracolsep{\fill}}r}
+  \textbf{\Large Jordan Lee} & \href{\detokenize{mailto:jordan.lee@example.com}}{jordan.lee@example.com} \\
+  Austin, TX & \href{\detokenize{tel:+15550100}}{+1 555 0100} \\
+  \href{\detokenize{https://linkedin.com/in/jordan-lee-example}}{LinkedIn} & \href{\detokenize{https://jordanlee.example.com}}{Portfolio} \\
+\end{tabular*}
+
+\section{Summary}
+
+\resumeSummary{Backend software engineer building reliable shipment and appointment APIs and data services with Python, FastAPI, PostgreSQL, Redis and AWS. Improves latency through query tuning, strengthens billing and tracking coverage with integration tests, and ships Docker services through GitHub Actions.}
+
+\section{Education}
+\resumeSubHeadingListStart
+  \resumeSubheading
+    {University of Texas at Austin}{Austin, TX}
+    {B.S. in Computer Science}{2016 -- 2020}
+\resumeSubHeadingListEnd
+
+\section{Experience}
+\resumeSubHeadingListStart
+\resumeSubheading
+    {Northwind Logistics}{Austin, TX}
+    {Software Engineer}{Jan 2022 -- Present}
+    \resumeItemListStart
+      \resumeItemPlain{Engineered shipment APIs with Python and FastAPI to handle 1,200 requests per second}
+      \resumeItemPlain{Tuned PostgreSQL queries to reduce average response time by 38\%}
+      \resumeItemPlain{Expanded billing and tracking coverage with 74 integration tests}
+      \resumeItemPlain{Automated AWS service deployments with Docker and GitHub Actions}
+      \resumeItemPlain{Instrumented shipment services with AWS dashboards to reduce incident triage time by 29\%}
+    \resumeItemListEnd
+\resumeSubheading
+    {Brightline Health}{Austin, TX}
+    {Associate Software Engineer}{Jun 2020 -- Dec 2021}
+    \resumeItemListStart
+      \resumeItemPlain{Delivered appointment APIs for workflows used by 18 clinics}
+      \resumeItemPlain{Migrated 2.4 million records into PostgreSQL with zero lost rows}
+      \resumeItemPlain{Streamlined Docker and GitHub Actions release checks from 12 deployment steps to 7}
+    \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+\section{Projects}
+\resumeSubHeadingListStart
+\resumeProjectHeading{Route Planner}{\href{\detokenize{https://jordanlee.example.com/route-planner}}{Live Demo}}
+    \resumeItemListStart
+      \resumeItemPlain{Built a Python and FastAPI route planning service with Redis}
+      \resumeItemPlain{Cut route planning time by 46\%}
+    \resumeItemListEnd
+\resumeProjectHeading{Clinic Queue}{\href{\detokenize{https://github.com/jordan-lee-example/clinic-queue}}{GitHub}}
+    \resumeItemListStart
+      \resumeItemPlain{Developed a Python and PostgreSQL appointment queue}
+      \resumeItemPlain{Supported 320 concurrent users}
+    \resumeItemListEnd
+\resumeProjectHeading{Metrics Console}{\href{\detokenize{https://github.com/jordan-lee-example/metrics-console}}{GitHub}}
+    \resumeItemListStart
+      \resumeItemPlain{Created a Python and JavaScript service metrics dashboard on AWS}
+      \resumeItemPlain{Tracked 12 services through the dashboard}
+    \resumeItemListEnd
+\resumeSubHeadingListEnd
+
+\section{Skills}
+\resumeSubHeadingListStart
+  \item\small{\textbf{Languages}{: Python, SQL, JavaScript}}
+  \item\small{\textbf{Frameworks}{: FastAPI, Django, React}}
+  \item\small{\textbf{Data}{: PostgreSQL, Redis}}
+  \item\small{\textbf{Cloud and Tools}{: AWS, Docker, GitHub Actions}}
+  \item\small{\textbf{Certifications}{: AWS Certified Developer -- Associate}}
+\resumeSubHeadingListEnd
+
+\end{document}

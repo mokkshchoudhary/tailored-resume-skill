@@ -1,0 +1,26 @@
+{
+  "candidate": {"name": "Jordan Lee", "email": "jordan.lee@example.com", "phone": "+1 555 0100", "location": "Austin, TX", "linkedin": "linkedin.com/in/jordan-lee-example", "website": "jordanlee.example.com"},
+  "summary": {"text": "Backend software engineer building reliable shipment and appointment APIs and data services with Python, FastAPI, PostgreSQL, Redis and AWS. Improves latency through query tuning, strengthens billing and tracking coverage with integration tests, and ships Docker services through GitHub Actions.", "evidence": ["I build reliable APIs and data services with Python, PostgreSQL and AWS.", "Implemented appointment APIs used by 18 clinics", "Reduced average response time by 38% through PostgreSQL query tuning", "Added 74 integration tests for billing and tracking workflows", "Deployed services on AWS with Docker and GitHub Actions"]},
+  "education": [{"institution": "University of Texas at Austin", "qualification": "B.S. in Computer Science", "location": "Austin, TX", "startDate": "2016", "endDate": "2020"}],
+  "experience": [
+    {"company": "Northwind Logistics", "role": "Software Engineer", "location": "Austin, TX", "startDate": "Jan 2022", "endDate": "Present", "bullets": [
+      {"text": "Engineered shipment APIs with Python and FastAPI to handle 1,200 requests per second", "evidence": ["Built a shipment API that handled 1,200 requests per second"]},
+      {"text": "Tuned PostgreSQL queries to reduce average response time by 38%", "evidence": ["Reduced average response time by 38% through PostgreSQL query tuning"]},
+      {"text": "Expanded billing and tracking coverage with 74 integration tests", "evidence": ["Added 74 integration tests for billing and tracking workflows"]},
+      {"text": "Automated AWS service deployments with Docker and GitHub Actions", "evidence": ["Deployed services on AWS with Docker and GitHub Actions"]},
+      {"text": "Instrumented shipment services with AWS dashboards to reduce incident triage time by 29%", "evidence": ["Instrumented shipment services with AWS dashboards, reducing incident triage time by 29%"]}
+    ]},
+    {"company": "Brightline Health", "role": "Associate Software Engineer", "location": "Austin, TX", "startDate": "Jun 2020", "endDate": "Dec 2021", "bullets": [
+      {"text": "Delivered appointment APIs for workflows used by 18 clinics", "evidence": ["Implemented appointment APIs used by 18 clinics"]},
+      {"text": "Migrated 2.4 million records into PostgreSQL with zero lost rows", "evidence": ["Migrated 2.4 million records to PostgreSQL with zero lost rows"]},
+      {"text": "Streamlined Docker and GitHub Actions release checks from 12 deployment steps to 7", "evidence": ["Automated release checks with Docker and GitHub Actions, cutting deployment steps from 12 to 7"]}
+    ]}
+  ],
+  "projects": [
+    {"name": "Route Planner", "link": "jordanlee.example.com/route-planner", "bullets": [{"text": "Built a Python and FastAPI route planning service with Redis", "evidence": ["Name: Route Planner | Link: jordanlee.example.com/route-planner | What: Built a route planning service | Tech: Python, FastAPI, Redis"]}, {"text": "Cut route planning time by 46%", "evidence": ["Results: cut planning time by 46%"]}]},
+    {"name": "Clinic Queue", "link": "github.com/jordan-lee-example/clinic-queue", "bullets": [{"text": "Developed a Python and PostgreSQL appointment queue", "evidence": ["Name: Clinic Queue | Link: github.com/jordan-lee-example/clinic-queue | What: Built an appointment queue | Tech: Python, PostgreSQL"]}, {"text": "Supported 320 concurrent users", "evidence": ["Results: supported 320 concurrent users"]}]},
+    {"name": "Metrics Console", "link": "github.com/jordan-lee-example/metrics-console", "bullets": [{"text": "Created a Python and JavaScript service metrics dashboard on AWS", "evidence": ["Name: Metrics Console | Link: github.com/jordan-lee-example/metrics-console | What: Built a service metrics dashboard | Tech: Python, JavaScript, AWS"]}, {"text": "Tracked 12 services through the dashboard", "evidence": ["Results: tracked 12 services"]}]}
+  ],
+  "skills": [{"category": "Languages", "items": ["Python", "SQL", "JavaScript"]}, {"category": "Frameworks", "items": ["FastAPI", "Django", "React"]}, {"category": "Data", "items": ["PostgreSQL", "Redis"]}, {"category": "Cloud and Tools", "items": ["AWS", "Docker", "GitHub Actions"]}],
+  "certifications": ["AWS Certified Developer – Associate"]
+}

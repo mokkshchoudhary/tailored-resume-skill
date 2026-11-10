@@ -1,0 +1,5 @@
+resume-output/
+*.zip
+__pycache__/
+/profile.md
+.DS_Store

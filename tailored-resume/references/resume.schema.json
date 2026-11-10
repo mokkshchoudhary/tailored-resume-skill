@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["candidate", "summary", "education", "experience", "projects", "skills", "certifications"],
+  "properties": {
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "email", "phone", "location", "linkedin", "website"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1}, "email": {"type": "string", "minLength": 1},
+        "phone": {"type": "string"}, "location": {"type": "string"}, "linkedin": {"type": "string"}, "website": {"type": "string"}
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false, "required": ["text", "evidence"],
+      "properties": {"text": {"type": "string"}, "evidence": {"type": "array", "minItems": 1, "items": {"type": "string"}}}
+    },
+    "education": {"type": "array", "items": {"$ref": "#/$defs/education"}},
+    "experience": {"type": "array", "items": {"$ref": "#/$defs/experience"}},
+    "projects": {"type": "array", "items": {"$ref": "#/$defs/project"}},
+    "skills": {"type": "array", "items": {"$ref": "#/$defs/skill"}},
+    "certifications": {"type": "array", "items": {"type": "string"}}
+  },
+  "$defs": {
+    "education": {"type": "object", "additionalProperties": false, "required": ["institution", "qualification", "location", "startDate", "endDate"], "properties": {"institution": {"type": "string"}, "qualification": {"type": "string"}, "location": {"type": "string"}, "startDate": {"type": "string"}, "endDate": {"type": "string"}}},
+    "bullet": {"type": "object", "additionalProperties": false, "required": ["text", "evidence"], "properties": {"text": {"type": "string"}, "evidence": {"type": "array", "minItems": 1, "items": {"type": "string"}}}},
+    "experience": {"type": "object", "additionalProperties": false, "required": ["company", "role", "location", "startDate", "endDate", "bullets"], "properties": {"company": {"type": "string"}, "role": {"type": "string"}, "location": {"type": "string"}, "startDate": {"type": "string"}, "endDate": {"type": "string"}, "bullets": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/bullet"}}}},
+    "project": {"type": "object", "additionalProperties": false, "required": ["name", "link", "bullets"], "properties": {"name": {"type": "string"}, "link": {"type": "string"}, "bullets": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/bullet"}}}},
+    "skill": {"type": "object", "additionalProperties": false, "required": ["category", "items"], "properties": {"category": {"type": "string"}, "items": {"type": "array", "minItems": 1, "items": {"type": "string"}}}}
+  }
+}
